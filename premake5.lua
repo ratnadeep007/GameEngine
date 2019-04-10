@@ -10,6 +10,12 @@ workspace "Hazel"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- Include directories relative to root folder (solution directory)
+IncludeDir = {}
+IncludeDir["GLFW"] = "Hazel/vendor/GLFW/include"
+
+include "Hazel/vendor/GLFW"
+
 project "Hazel"
 	location "Hazel"
 	kind "SharedLib"
@@ -17,6 +23,9 @@ project "Hazel"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	pchheader "hzpch.h"
+	pchsource "Hazel/src/hzpch.cpp"
 
 	files
 	{
@@ -26,10 +35,18 @@ project "Hazel"
 
 	includedirs
 	{
-		"%{prj.name}/vendor/spdlog/include"
+		"%{prj.name}/src",
+		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}"
 	}
-	
-	filter "system.windows"
+
+	links 
+	{ 
+		"GLFW",
+		"opengl32.lib"
+	}
+
+	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
@@ -42,25 +59,24 @@ project "Hazel"
 
 		postbuildcommands
 		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" ..outputdir ..  "/Sandbox")
+			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
 		}
 
-	filter  "configuration.Debug"
+	filter "configurations:Debug"
 		defines "HZ_DEBUG"
 		symbols "On"
 
-	filter  "configuration.Debug"
+	filter "configurations:Release"
 		defines "HZ_RELEASE"
-		symbols "On"
+		optimize "On"
 
-	filter  "configuration.Debug"
+	filter "configurations:Dist"
 		defines "HZ_DIST"
-		symbols "On"
+		optimize "On"
 
 project "Sandbox"
 	location "Sandbox"
 	kind "ConsoleApp"
-
 	language "C++"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -74,11 +90,16 @@ project "Sandbox"
 
 	includedirs
 	{
-		"%{prj.name}/vendor/spdlog/include",
+		"Hazel/vendor/spdlog/include",
 		"Hazel/src"
 	}
-	
-	filter "system.windows"
+
+	links
+	{
+		"Hazel"
+	}
+
+	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
@@ -88,19 +109,14 @@ project "Sandbox"
 			"HZ_PLATFORM_WINDOWS"
 		}
 
-	links
-	{
-		"Hazel"
-	}
-
-	filter  "configuration.Debug"
+	filter "configurations:Debug"
 		defines "HZ_DEBUG"
 		symbols "On"
 
-	filter  "configuration.Debug"
+	filter "configurations:Release"
 		defines "HZ_RELEASE"
-		symbols "On"
+		optimize "On"
 
-	filter  "configuration.Debug"
+	filter "configurations:Dist"
 		defines "HZ_DIST"
-		symbols "On"
+		optimize "On"
