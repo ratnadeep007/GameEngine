@@ -14,9 +14,13 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["GLFW"] = "Hazel/vendor/GLFW/include"
 IncludeDir["Glad"] = "Hazel/vendor/Glad/include"
+IncludeDir["ImGui"] = "Hazel/vendor/imgui/"
 
 include "Hazel/vendor/GLFW"
 include "Hazel/vendor/Glad"
+include "Hazel/vendor/imgui"
+
+startproject "Sandbox"
 
 project "Hazel"
 	location "Hazel"
@@ -40,14 +44,16 @@ project "Hazel"
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}"
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.ImGui}"
 	}
 
 	links 
 	{ 
 		"GLFW",
 		"Glad",
-		"opengl32.lib"
+		"ImGui",
+		"opengl32.lib",
 	}
 
 	filter "system:windows"
@@ -64,7 +70,7 @@ project "Hazel"
 
 		postbuildcommands
 		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
+			("{COPY} %{cfg.buildtarget.relpath} \"../bin/" .. outputdir .. "/Sandbox/\")
 		}
 
 	filter "configurations:Debug"
